@@ -1,0 +1,13 @@
+{
+  "name": "scorpius-leads",
+  "version": "1.0.0",
+  "description": "Scorpius Leads — B2B outbound and pipeline operations",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
