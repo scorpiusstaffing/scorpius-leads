@@ -18,6 +18,9 @@ const RED          = '#C8362A';
 
 const font = opentype.parse(fs.readFileSync(path.join(__dirname, 'raw/space-grotesk-700.ttf')).buffer);
 
+// Render each glyph at origin (0,0) and emit a transform per glyph.
+// opentype.js's getPath at non-zero x has occasional NaN bugs at specific
+// cursor values; this avoids them entirely.
 function makePath(text, fontSize, x = 0, y = 0, letterSpacing = 0) {
   const glyphs = font.stringToGlyphs(text);
   const scale = (1 / font.unitsPerEm) * fontSize;
@@ -25,11 +28,19 @@ function makePath(text, fontSize, x = 0, y = 0, letterSpacing = 0) {
   const parts = [];
   for (let i = 0; i < glyphs.length; i++) {
     const g = glyphs[i];
-    const p = g.getPath(cursor, y, fontSize);
-    parts.push(p.toPathData(3));
+    const p = g.getPath(0, y, fontSize);
+    const data = p.toPathData(3);
+    if (data) parts.push({ d: data, tx: cursor });
     cursor += g.advanceWidth * scale + letterSpacing;
   }
   return { paths: parts, advanceTo: cursor };
+}
+
+/* Render an array of glyph paths into individual <path> SVG elements
+ * (avoids resvg-js bug that drops glyphs when many paths are concatenated
+ * into a single d attribute). */
+function pathsToSvg(paths, fill) {
+  return paths.map(p => `<g transform="translate(${p.tx}, 0)"><path d="${p.d}" fill="${fill}"/></g>`).join('');
 }
 
 /* HORIZONTAL — "SCORPIUS LEADS." all caps, tight */
@@ -39,8 +50,8 @@ function buildWordmark({ fontSize = 100 }) {
   const main = makePath('SCORPIUS LEADS', fontSize, 0, baseline, ls);
   const dot  = makePath('.', fontSize, main.advanceTo + fontSize * 0.02, baseline, ls);
   return {
-    mainD: main.paths.join(' '),
-    dotD:  dot.paths.join(' '),
+    mainPaths: main.paths,
+    dotPaths:  dot.paths,
     totalWidth: dot.advanceTo,
     totalHeight: fontSize
   };
@@ -58,9 +69,9 @@ function buildStacked({ fontSize = 100 }) {
   const maxW = Math.max(line1.advanceTo, dot.advanceTo);
   const totalH = fontSize + lineGap + fontSize;
   return {
-    line1D: line1.paths.join(' '),
-    line2D: line2Text.paths.join(' '),
-    dotD:   dot.paths.join(' '),
+    line1Paths: line1.paths,
+    line2Paths: line2Text.paths,
+    dotPaths:   dot.paths,
     maxWidth: maxW,
     totalHeight: totalH
   };
@@ -88,7 +99,7 @@ const out = __dirname;
   const H = fs0 + pad * 2;
   fs.writeFileSync(path.join(out, 'scorpius-leads-wordmark.svg'),
     wrapSvg({ width: W, height: H, viewBox: `0 0 ${W} ${H}`,
-      content: `<g transform="translate(${pad}, ${pad})"><path d="${w.mainD}" fill="${EMERALD}"/><path d="${w.dotD}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${pad}, ${pad})">${pathsToSvg(w.mainPaths, EMERALD)}${pathsToSvg(w.dotPaths, RED)}</g>` }));
 }
 {
   const fs0 = 100;
@@ -98,7 +109,7 @@ const out = __dirname;
   const H = fs0 + pad * 2;
   fs.writeFileSync(path.join(out, 'scorpius-leads-wordmark-on-white.svg'),
     wrapSvg({ width: W, height: H, viewBox: `0 0 ${W} ${H}`, bg: WHITE,
-      content: `<g transform="translate(${pad}, ${pad})"><path d="${w.mainD}" fill="${EMERALD}"/><path d="${w.dotD}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${pad}, ${pad})">${pathsToSvg(w.mainPaths, EMERALD)}${pathsToSvg(w.dotPaths, RED)}</g>` }));
 }
 {
   const fs0 = 100;
@@ -108,7 +119,7 @@ const out = __dirname;
   const H = fs0 + pad * 2;
   fs.writeFileSync(path.join(out, 'scorpius-leads-wordmark-light.svg'),
     wrapSvg({ width: W, height: H, viewBox: `0 0 ${W} ${H}`,
-      content: `<g transform="translate(${pad}, ${pad})"><path d="${w.mainD}" fill="${CREAM}"/><path d="${w.dotD}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${pad}, ${pad})">${pathsToSvg(w.mainPaths, CREAM)}${pathsToSvg(w.dotPaths, RED)}</g>` }));
 }
 {
   const fs0 = 100;
@@ -118,7 +129,7 @@ const out = __dirname;
   const H = fs0 + pad * 2;
   fs.writeFileSync(path.join(out, 'scorpius-leads-wordmark-on-emerald.svg'),
     wrapSvg({ width: W, height: H, viewBox: `0 0 ${W} ${H}`, bg: EMERALD_DEEP,
-      content: `<g transform="translate(${pad}, ${pad})"><path d="${w.mainD}" fill="${CREAM}"/><path d="${w.dotD}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${pad}, ${pad})">${pathsToSvg(w.mainPaths, CREAM)}${pathsToSvg(w.dotPaths, RED)}</g>` }));
 }
 
 /* ============================================================
@@ -132,7 +143,7 @@ const out = __dirname;
   const yOffset = (side - s.totalHeight) / 2;
   fs.writeFileSync(path.join(out, 'scorpius-leads-stacked.svg'),
     wrapSvg({ width: side, height: side, viewBox: `0 0 ${side} ${side}`,
-      content: `<g transform="translate(${xOffset}, ${yOffset})"><path d="${s.line1D}" fill="${EMERALD}"/><path d="${s.line2D}" fill="${EMERALD}"/><path d="${s.dotD}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${xOffset}, ${yOffset})">${pathsToSvg(s.line1Paths, EMERALD)}${pathsToSvg(s.line2Paths, EMERALD)}${pathsToSvg(s.dotPaths, RED)}</g>` }));
 }
 {
   const fs0 = 130;
@@ -142,7 +153,7 @@ const out = __dirname;
   const yOffset = (side - s.totalHeight) / 2;
   fs.writeFileSync(path.join(out, 'scorpius-leads-stacked-on-white.svg'),
     wrapSvg({ width: side, height: side, viewBox: `0 0 ${side} ${side}`, bg: WHITE,
-      content: `<g transform="translate(${xOffset}, ${yOffset})"><path d="${s.line1D}" fill="${EMERALD}"/><path d="${s.line2D}" fill="${EMERALD}"/><path d="${s.dotD}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${xOffset}, ${yOffset})">${pathsToSvg(s.line1Paths, EMERALD)}${pathsToSvg(s.line2Paths, EMERALD)}${pathsToSvg(s.dotPaths, RED)}</g>` }));
 }
 {
   const fs0 = 130;
@@ -152,7 +163,7 @@ const out = __dirname;
   const yOffset = (side - s.totalHeight) / 2;
   fs.writeFileSync(path.join(out, 'scorpius-leads-stacked-on-emerald.svg'),
     wrapSvg({ width: side, height: side, viewBox: `0 0 ${side} ${side}`, bg: EMERALD_DEEP,
-      content: `<g transform="translate(${xOffset}, ${yOffset})"><path d="${s.line1D}" fill="${CREAM}"/><path d="${s.line2D}" fill="${CREAM}"/><path d="${s.dotD}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${xOffset}, ${yOffset})">${pathsToSvg(s.line1Paths, CREAM)}${pathsToSvg(s.line2Paths, CREAM)}${pathsToSvg(s.dotPaths, RED)}</g>` }));
 }
 
 /* ============================================================
@@ -168,7 +179,7 @@ const out = __dirname;
   const yOffset = (side - fs0) / 2 + 1;
   fs.writeFileSync(path.join(out, 'scorpius-leads-favicon.svg'),
     wrapSvg({ width: side, height: side, viewBox: `0 0 ${side} ${side}`, bg: EMERALD_DEEP,
-      content: `<g transform="translate(${xOffset}, ${yOffset})"><path d="${mainP.paths.join(' ')}" fill="${CREAM}"/><path d="${dotP.paths.join(' ')}" fill="${RED}"/></g>` }));
+      content: `<g transform="translate(${xOffset}, ${yOffset})">${pathsToSvg(mainP.paths, CREAM)}${pathsToSvg(dotP.paths, RED)}</g>` }));
 }
 
 console.log('Scorpius Leads brand SVGs generated (Space Grotesk Bold all-caps):');
