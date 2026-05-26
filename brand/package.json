@@ -1,1 +1,1 @@
-{ "name": "scorpius-staffing-brand-builder", "private": true, "type": "module" }
+{"name":"scorpius-staffing-brand-builder","private":true,"type":"module","dependencies":{"@resvg/resvg-js":"^2.6.2","opentype.js":"^2.0.0"}}
