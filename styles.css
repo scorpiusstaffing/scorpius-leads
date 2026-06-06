@@ -672,6 +672,20 @@ ul, ol { list-style: none; }
   letter-spacing: -0.01em;
 }
 
+.proof-after {
+  font-family: var(--sans);
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.5;
+  color: rgba(232,237,233,0.78);
+  max-width: 44ch;
+  margin: 0 auto 1.75rem;
+}
+
+.proof-after em {
+  font-style: italic;
+  color: var(--cream);
+}
+
 .proof-meta {
   font-family: var(--mono);
   font-size: 0.78rem;
