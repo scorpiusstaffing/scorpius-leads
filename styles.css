@@ -641,17 +641,116 @@ ul, ol { list-style: none; }
 .contact-meta a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ============================================================
+   HOW SECTION HEADLINE (above pipeline row)
+   ============================================================ */
+.how-headline {
+  margin-bottom: 2.5rem;
+}
+
+/* ============================================================
+   CASES (in PROOF section)
+   ============================================================ */
+.case-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin: 2.5rem 0 3rem;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .case-grid { grid-template-columns: 1fr; }
+}
+
+.case-card {
+  background: rgba(232,237,233,0.04);
+  border: 1px solid rgba(232,237,233,0.16);
+  padding: 1.5rem 1.4rem 1.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  transition: border-color 0.25s ease;
+}
+
+.case-card:hover { border-color: var(--accent); }
+
+.case-tag {
+  font-family: var(--display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.case-card h4 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.005em;
+  color: var(--cream);
+  text-transform: uppercase;
+}
+
+.case-card p {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(232,237,233,0.75);
+}
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+.faq .block-head { margin-bottom: 2rem; }
+
+.faq-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(232,237,233,0.16);
+  border: 1px solid rgba(232,237,233,0.16);
+}
+
+@media (max-width: 800px) {
+  .faq-list { grid-template-columns: 1fr; }
+}
+
+.faq-item {
+  background: var(--emerald-deep);
+  padding: 1.75rem 1.75rem 1.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.faq-item h4 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.005em;
+  color: var(--cream);
+  text-transform: none;
+}
+
+.faq-item p {
+  font-family: var(--sans);
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: rgba(232,237,233,0.78);
+}
+
+/* ============================================================
    PROOF / TESTIMONIAL
    ============================================================ */
+.proof-headline { margin-bottom: 1rem; }
+
 .proof .container {
-  max-width: 880px;
+  max-width: 1080px;
   text-align: center;
 }
 
-.proof .kicker {
-  display: inline-block;
-  margin-bottom: 2.25rem;
-}
+.proof .kicker { display: inline-block; }
 
 .proof-quote {
   font-family: var(--display);
